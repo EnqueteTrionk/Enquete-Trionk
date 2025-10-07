@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Onderzoek - Thema's</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1, h2 {
+      padding: 20px;
+      margin: 0;
+      color: white;
+      background-color: #333;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .tile {
+      padding: 30px 20px;
+      background-color: #ccc;
+      color: white;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .tile:hover {
+      transform: scale(1.05);
+    }
+    .tile:nth-child(1) { background-color: #3498db; }
+    .tile:nth-child(2) { background-color: #9b59b6; }
+    .tile:nth-child(3) { background-color: #e67e22; }
+    .tile:nth-child(4) { background-color: #1abc9c; }
+    .tile:nth-child(5) { background-color: #2ecc71; }
+    .tile:nth-child(6) { background-color: #e74c3c; }
+    .tile:nth-child(7) { background-color: #f39c12; }
+    .tile:nth-child(8) { background-color: #34495e; }
+
+    .content {
+      display: none;
+      background: white;
+      padding: 30px;
+      max-width: 600px;
+      margin: 30px auto;
+      border-radius: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .nav-top {
+      margin: 10px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .nav-top a {
+      color: #007BFF;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .stats {
+      text-align: left;
+      max-width: 600px;
+      margin: auto;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Onderzoek - Kies een thema</h1>
+
+  <div class="grid" id="tileGrid">
+    <div class="tile" onclick="showSubtopics('info')">Info & Advies</div>
+    <div class="tile" onclick="showSubtopics('jeugd')">Jeugd</div>
+    <div class="tile" onclick="showSubtopics('leren')">Leren & Ontwikkelen</div>
+    <div class="tile" onclick="showSubtopics('sport')">Sport & Spel</div>
+    <div class="tile" onclick="showSubtopics('duurzaamheid')">Duurzaamheid & Groen</div>
+    <div class="tile" onclick="showSubtopics('cultuur')">Cultuur</div>
+    <div class="tile" onclick="showSubtopics('gezondheid')">Gezondheid</div>
+    <div class="tile" onclick="showSubtopics('samen')">Samen & Sociaal</div>
+  </div>
+
+  <div class="content" id="subtopicsContainer">
+    <div class="nav-top">
+      <a onclick="goBack()">← Terug naar thema's</a> | 
+      <a onclick="showStats()">📊 Bekijk statistieken</a>
+    </div>
+
+    <h2 id="subtopicTitle"></h2>
+    <form id="subtopicForm"></form>
+    <button onclick="saveAnswers()">Opslaan keuzes</button>
+  </div>
+
+  <div class="content" id="statsContainer">
+    <div class="nav-top">
+      <a onclick="goBack()">← Terug naar thema's</a>
+    </div>
+    <h2>📊 Statistieken</h2>
+    <div class="stats" id="statsContent"></div>
+  </div>
+
+  <script>
+    const subtopics = {
+      info: {
+        title: "Info & Advies",
+        items: ["Informatie over wonen", "Financiën", "WMO", "Levenstestament", "Rouw", "PGB informatiedag"]
+      },
+      jeugd: {
+        title: "Jeugd",
+        items: ["Jongereninformatiepunt", "Jongereninloop", "Gameavonden", "Disco", "Workshops (DJ/Graffiti)"]
+      },
+      leren: {
+        title: "Leren & Ontwikkelen",
+        items: ["Digitale vaardigheid en veiligheid", "Cursus budgeteren", "Taalcafé", "Educatieve kinderclub", "Kenniscafé", "Workshops (bijv. AI)"]
+      },
+      sport: {
+        title: "Sport & Spel",
+        items: ["Straatvoetbaltoernooi", "Spelletjes", "Gameavonden", "Sportclinics", "Zumba/Danslessen"]
+      },
+      duurzaamheid: {
+        title: "Duurzaamheid & Groen",
+        items: ["Buurtmoestuin", "Workshops (energiebesparen)", "Groenprojecten", "Cleanup dagen", "Cursus upcycling"]
+      },
+      cultuur: {
+        title: "Cultuur",
+        items: ["Filmavonden", "Muziekworkshops", "Theaterproject", "Boekenclub", "Wereldkeukenavonden", "Workshops fotografie"]
+      },
+      gezondheid: {
+        title: "Gezondheid",
+        items: ["Kookworkshops", "Mindfulness", "Lezingen vitaliteit", "EHBO cursussen", "Lotgenotengroepen"]
+      },
+      samen: {
+        title: "Samen & Sociaal",
+        items: ["Eetmomenten", "Vrijwilligersmarkt", "Eten en daten", "Repaircafé", "Wijkbingo", "Koffie met thema"]
+      }
+    };
+
+    let currentKey = "";
+
+    function showSubtopics(key) {
+      currentKey = key;
+      const data = subtopics[key];
+      document.getElementById("tileGrid").style.display = "none";
+      document.getElementById("statsContainer").style.display = "none";
+      document.getElementById("subtopicsContainer").style.display = "block";
+      document.getElementById("subtopicTitle").textContent = data.title;
+
+      const form = document.getElementById("subtopicForm");
+      form.innerHTML = "";
+
+      data.items.forEach((item, i) => {
+        const id = `chk-${key}-${i}`;
+        form.innerHTML += `
+          <label><input type="checkbox" id="${id}" value="${item}"> ${item}</label><br/>
+        `;
+      });
+    }
+
+    function goBack() {
+      document.getElementById("tileGrid").style.display = "grid";
+      document.getElementById("subtopicsContainer").style.display = "none";
+      document.getElementById("statsContainer").style.display = "none";
+    }
+
+    function saveAnswers() {
+      const checkboxes = document.querySelectorAll("#subtopicForm input[type='checkbox']");
+      let selected = [];
+
+      checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          selected.push(checkbox.value);
+        }
+      });
+
+      if (selected.length === 0) {
+        alert("Selecteer minstens één optie.");
+        return;
+      }
+
+      const stored = JSON.parse(localStorage.getItem("surveyData") || "{}");
+
+      selected.forEach(item => {
+        if (!stored[item]) stored[item] = 0;
+        stored[item]++;
+      });
+
+      localStorage.setItem("surveyData", JSON.stringify(stored));
+
+      alert("Bedankt! Je antwoorden zijn opgeslagen.");
+      goBack();
+    }
+
+    function showStats() {
+      document.getElementById("tileGrid").style.display = "none";
+      document.getElementById("subtopicsContainer").style.display = "none";
+      document.getElementById("statsContainer").style.display = "block";
+
+      const data = JSON.parse(localStorage.getItem("surveyData") || "{}");
+      const statsDiv = document.getElementById("statsContent");
+      statsDiv.innerHTML = "";
+
+      if (Object.keys(data).length === 0) {
+        statsDiv.textContent = "Nog geen antwoorden.";
+        return;
+      }
+
+      for (const [item, count] of Object.entries(data)) {
+        const
